@@ -878,8 +878,11 @@ const server = createServer(async (req, res) => {
       const raw = String(body.path || "").trim();
       if (!raw) return json(400, { error: "missing path" });
       const resolved = resolve(raw);
-      if (!existsSync(resolved)) return json(400, { error: `Directory does not exist: ${resolved}` });
-      if (!statSync(resolved).isDirectory()) return json(400, { error: `Not a directory: ${resolved}` });
+      if (!existsSync(resolved)) return json(400, { error: `Path does not exist: ${resolved}` });
+      // 项目可以是目录，也可以是单个文件（默认项目即文件）
+      if (!statSync(resolved).isDirectory() && !statSync(resolved).isFile()) {
+        return json(400, { error: `Not a file or directory: ${resolved}` });
+      }
       const projects = loadProjects();
       if (projects.some((pr) => pr.path.toLowerCase() === resolved.toLowerCase())) {
         return json(409, { error: "Project already added" });
@@ -888,6 +891,7 @@ const server = createServer(async (req, res) => {
         id: randomUUID(),
         name: body.name || basename(resolved) || resolved,
         path: resolved,
+        isFile: !statSync(resolved).isDirectory(),
         createdAt: Date.now(),
       };
       projects.unshift(pr);

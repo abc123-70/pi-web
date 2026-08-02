@@ -318,8 +318,17 @@
     overflow: hidden; text-overflow: ellipsis;
   }
   .browse-item:hover { background: #1c2536; color: #e8eaed; }
-  .browse-item.up { color: #7dd3fc; }
+  .browse-item.up { color: #7dd3fc; font-size: 12.5px; }
+  .browse-item.file { color: #9aa4b2; font-size: 12.5px; }
   .browse-item .f { color: #5b6472; margin-right: 6px; }
+  /* 盘符快捷跳转 */
+  .browse-roots { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 10px; }
+  .browse-roots .root {
+    background: transparent; border: 1px solid #232b36; color: #8b95a1;
+    border-radius: 5px; padding: 1px 7px; font-size: 11px; cursor: pointer;
+    line-height: 1.5;
+  }
+  .browse-roots .root:hover { color: #e8eaed; border-color: #3b82f6; }
 
   /* ================= P0 新增：设置面板 ================= */
   .modal-overlay {
@@ -1321,15 +1330,14 @@ async function addProject() {
   modal.innerHTML =
     '<div class="modal-head"><span class="modal-title">添加项目</span><button class="modal-x" id="apClose">✕</button></div>' +
     '<div class="cfg-body">' +
-    '  <div class="proj-quick" id="apQuick"></div>' +
     '  <div class="browse-row">' +
-    '    <textarea class="cfg-edit" id="apInput" style="min-height:38px;white-space:normal" placeholder="项目目录路径，或点右侧浏览选择"></textarea>' +
+    '    <textarea class="cfg-edit" id="apInput" style="min-height:38px;white-space:normal" placeholder="项目路径（目录或文件），或点右侧浏览选择"></textarea>' +
     '    <button class="cfg-save browse-toggle" id="apBrowse">浏览</button>' +
     "  </div>" +
     '  <div class="browse-panel" id="apBrowsePanel" style="display:none">' +
-    '    <div class="browse-path" id="apBPath">--</div>' +
+    '    <div class="browse-path"><span id="apBPath">--</span><span class="browse-roots" id="apRoots"></span></div>' +
     '    <div class="browse-list" id="apBList"></div>' +
-    '    <div class="cfg-foot" style="padding:8px 10px"><span class="cfg-status" id="apBStatus"></span><button class="cfg-save" id="apUseDir" style="background:transparent;border:1px solid #2a323d;color:#9aa4b2">使用此目录</button></div>' +
+    '    <div class="cfg-foot" style="padding:8px 10px"><span class="cfg-status" id="apBStatus"></span><button class="cfg-save" id="apUseDir" style="background:transparent;border:1px solid #2a323d;color:#9aa4b2">使用此路径</button></div>' +
     "  </div>" +
     '  <div class="cfg-foot"><span class="cfg-status" id="apStatus"></span><button class="cfg-save" id="apSave">添加</button></div>' +
     "</div>";
@@ -1337,26 +1345,23 @@ async function addProject() {
   document.body.appendChild(overlay);
   const input = modal.querySelector("#apInput");
   const status = modal.querySelector("#apStatus");
-  const quickBox = modal.querySelector("#apQuick");
   const bPanel = modal.querySelector("#apBrowsePanel");
   const bPath = modal.querySelector("#apBPath");
   const bList = modal.querySelector("#apBList");
   const bStatus = modal.querySelector("#apBStatus");
   let browsePath = "";
-  // 快捷目录
-  try {
-    const r = await fetch("/api/projects/quick-paths");
-    const d = await r.json();
-    if (d.ok) {
-      for (const q of d.paths.filter((x) => x.exists)) {
-        const b = el("button", "", esc(q.label));
-        b.addEventListener("click", () => { input.value = q.path; input.focus(); });
-        quickBox.appendChild(b);
-      }
-    }
-  } catch {}
-  // 目录浏览
+  // 目录浏览：展示所有条目（目录可进入，文件可选中），支持盘符根跳转
   const winJoin = (base, name) => base.replace(/[\\/]+$/, "") + "\\" + name;
+  function renderRoots() {
+    const box = modal.querySelector("#apRoots");
+    box.innerHTML = "";
+    for (const r of ["C:/", "D:/", "E:/", "F:/", "G:/", "H:/", "I:/", "J:/", "K:/", "L:/", "M:/", "N:/", "O:/", "P:/", "Q:/", "R:/", "S:/", "T:/", "U:/", "V:/", "W:/", "X:/", "Y:/", "Z:/"]) {
+      const b = el("button", "root", r.replace("/", ""));
+      b.title = r;
+      b.addEventListener("click", () => { browsePath = r; loadBrowse(); });
+      box.appendChild(b);
+    }
+  }
   async function loadBrowse() {
     bStatus.textContent = "";
     bPath.textContent = browsePath;
@@ -1368,20 +1373,35 @@ async function addProject() {
       browsePath = d.path;
       bPath.textContent = d.path;
       bList.innerHTML = "";
+      // 一级返回：回到盘符根；二级返回：上一级目录
       if (d.parent && d.parent !== d.path) {
-        const up = el("div", "browse-item up", esc(d.parent));
+        const up = el("div", "browse-item up", "↑ 上一级  " + esc(d.parent));
         up.addEventListener("click", () => { browsePath = d.parent; loadBrowse(); });
         bList.appendChild(up);
+        const rootOf = d.path.replace(/[\\/].*$/, "/");
+        if (rootOf !== d.parent) {
+          const upRoot = el("div", "browse-item up", "↖ 盘符根  " + esc(rootOf));
+          upRoot.addEventListener("click", () => { browsePath = rootOf; loadBrowse(); });
+          bList.appendChild(upRoot);
+        }
       }
-      let dirCount = 0;
+      let dirCount = 0, fileCount = 0;
       for (const e of d.entries) {
-        if (!e.isDir) continue;
-        dirCount++;
-        const it = el("div", "browse-item", esc(e.name));
-        it.addEventListener("click", () => { browsePath = winJoin(d.path, e.name); loadBrowse(); });
-        bList.appendChild(it);
+        if (e.isDir) {
+          dirCount++;
+          const it = el("div", "browse-item", esc(e.name) + "/");
+          it.title = "进入目录";
+          it.addEventListener("click", () => { browsePath = winJoin(d.path, e.name); loadBrowse(); });
+          bList.appendChild(it);
+        } else {
+          fileCount++;
+          const it = el("div", "browse-item file", esc(e.name));
+          it.title = "选择此文件作为项目";
+          it.addEventListener("click", () => { input.value = winJoin(d.path, e.name); bPanel.style.display = "none"; input.focus(); });
+          bList.appendChild(it);
+        }
       }
-      if (!dirCount) bList.appendChild(el("div", "mc-note", "（此目录下没有子目录）"));
+      if (!dirCount && !fileCount) bList.appendChild(el("div", "mc-note", "（空目录）"));
     } catch (err) {
       bList.innerHTML = '<span class="mc-note">' + esc(err.message) + "</span>";
     }
@@ -1390,7 +1410,8 @@ async function addProject() {
     const shown = bPanel.style.display !== "none";
     bPanel.style.display = shown ? "none" : "block";
     if (!shown) {
-      browsePath = input.value.trim() || browsePath;
+      browsePath = input.value.trim() || browsePath || "C:/";
+      renderRoots();
       loadBrowse();
     }
   });
