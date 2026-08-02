@@ -46,11 +46,24 @@ const SKILLS_CLI_AVAILABLE = (() => {
 const HERE = join(fileURLToPath(import.meta.url), "..");
 const PAGE_HTML_PATH = join(HERE, "page.html");
 
-// ---------- 项目工作区存储（P0 #4） ----------
-const PROJECTS_FILE = join(AGENT_DIR, "pi-web-projects.json");
+// ---------- 项目工作区存储（P0 #4）：按工作目录隔离，不同 cwd 的用户互不串数据 ----------
+// 旧版本存在 ~/.pi/agent/pi-web-projects.json（全局），现改为随 cwd（.pi-web-projects.json），
+// 首次启动时把旧全局数据迁移过来，避免老用户丢失项目列表。
+const PROJECTS_FILE = join(DEFAULT_CWD, ".pi-web-projects.json");
+const LEGACY_PROJECTS_FILE = join(AGENT_DIR, "pi-web-projects.json");
 function loadProjects() {
+  let target = PROJECTS_FILE;
+  // 旧全局文件存在且新文件不存在 → 迁移
+  if (!existsSync(target) && existsSync(LEGACY_PROJECTS_FILE)) {
+    try {
+      mkdirSync(dirname(target), { recursive: true });
+      copyFileSync(LEGACY_PROJECTS_FILE, target);
+    } catch {
+      /* ignore */
+    }
+  }
   try {
-    const data = JSON.parse(readFileSync(PROJECTS_FILE, "utf8"));
+    const data = JSON.parse(readFileSync(target, "utf8"));
     if (Array.isArray(data.projects)) return data.projects;
   } catch {
     /* ignore */
@@ -58,7 +71,7 @@ function loadProjects() {
   return [];
 }
 function saveProjects(projects) {
-  mkdirSync(AGENT_DIR, { recursive: true });
+  mkdirSync(dirname(PROJECTS_FILE), { recursive: true });
   const tmp = PROJECTS_FILE + ".tmp";
   writeFileSync(tmp, JSON.stringify({ version: 1, projects }, null, 2), "utf8");
   renameSync(tmp, PROJECTS_FILE);
