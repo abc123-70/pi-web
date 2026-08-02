@@ -1,0 +1,36 @@
+# 依赖
+node_modules/
+
+# 本机环境（根目录密钥/配置）
+/.env
+/restart-test-result.txt
+
+# 备份与临时文件
+*.bak
+*.bak-*
+*.log
+*.tmp
+
+# 密钥与用户数据（不提交，但保留 .pi/skills 内置技能）
+/auth.json
+/models.json
+/models-store.json
+/settings.json
+/pi-web-projects.json
+/pi-cache-optimizer-stats.json
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+
+# 本地工具残留（不随项目发布）
+/inspect_lnk.ps1
+/make-app-shortcuts.ps1
+/make-shortcut.ps1
+/start-app.cmd
+/bd.html
+/_inline.js

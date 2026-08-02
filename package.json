@@ -1,0 +1,26 @@
+{
+  "name": "pi-web",
+  "version": "1.0.0",
+  "description": "本地多会话 AI 网页助手 —— 深色极简 UI，支持项目工作区、技能管理、图片/文件附件、语音输入、优雅重启",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs"
+  },
+  "keywords": [
+    "ai",
+    "chat",
+    "web",
+    "pi-coding-agent",
+    "deepseek",
+    "local"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "^0.83.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
