@@ -53,8 +53,10 @@ const PROJECTS_FILE = join(DEFAULT_CWD, ".pi-web-projects.json");
 const LEGACY_PROJECTS_FILE = join(AGENT_DIR, "pi-web-projects.json");
 function loadProjects() {
   let target = PROJECTS_FILE;
-  // 旧全局文件存在且新文件不存在 → 迁移
-  if (!existsSync(target) && existsSync(LEGACY_PROJECTS_FILE)) {
+  // 迁移条件：仅当使用默认工作目录（老用户升级场景）且新文件不存在时，
+  // 把旧全局数据带过来；显式指定 cwd 的新用户（PI_WEB_CWD）不继承，保证隔离
+  const isDefaultCwd = process.env.PI_WEB_CWD ? DEFAULT_CWD.toLowerCase() === homedir().toLowerCase() : true;
+  if (!existsSync(target) && existsSync(LEGACY_PROJECTS_FILE) && isDefaultCwd) {
     try {
       mkdirSync(dirname(target), { recursive: true });
       copyFileSync(LEGACY_PROJECTS_FILE, target);
