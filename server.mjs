@@ -1009,29 +1009,35 @@ const server = createServer(async (req, res) => {
     }
     // ---- 技能列表（~/.pi/agent/skills/） ----
     if (p === "/api/skills" && req.method === "GET") {
-      const dir = join(AGENT_DIR, "skills");
+      // 技能来源：① 项目内置 .pi/skills/（随仓库发布）② 用户已安装 ~/.pi/agent/skills/
+      const dirs = [join(HERE, ".pi", "skills"), join(AGENT_DIR, "skills")];
       const items = [];
-      try {
-        for (const name of readdirSync(dir)) {
-          const full = join(dir, name);
-          if (!statSync(full).isDirectory()) continue;
-          const disabled = name.endsWith(".off");
-          const realName = disabled ? name.slice(0, -4) : name;
-          // 技能名：取 SKILL.md frontmatter 的 name，否则用目录名
-          let skillName = realName, desc = "";
-          try {
-            const md = readFileSync(join(full, "SKILL.md"), "utf8").slice(0, 4000);
-            const nm = md.match(/^name:\s*(.+)$/m);
-            const ds = md.match(/^description:\s*(.+)$/m);
-            if (nm) skillName = nm[1].trim();
-            if (ds) desc = ds[1].trim().replace(/^["']|["']$/g, "");
-          } catch {}
-          items.push({
-            id: realName, name: skillName, description: desc,
-            enabled: !disabled, path: full,
-          });
-        }
-      } catch {}
+      const seen = new Set();
+      for (const dir of dirs) {
+        try {
+          for (const name of readdirSync(dir)) {
+            const full = join(dir, name);
+            if (!statSync(full).isDirectory()) continue;
+            const disabled = name.endsWith(".off");
+            const realName = disabled ? name.slice(0, -4) : name;
+            if (seen.has(realName)) continue; // 项目内置优先，用户目录同名不重复
+            seen.add(realName);
+            // 技能名：取 SKILL.md frontmatter 的 name，否则用目录名
+            let skillName = realName, desc = "";
+            try {
+              const md = readFileSync(join(full, "SKILL.md"), "utf8").slice(0, 4000);
+              const nm = md.match(/^name:\s*(.+)$/m);
+              const ds = md.match(/^description:\s*(.+)$/m);
+              if (nm) skillName = nm[1].trim();
+              if (ds) desc = ds[1].trim().replace(/^["']|["']$/g, "");
+            } catch {}
+            items.push({
+              id: realName, name: skillName, description: desc,
+              enabled: !disabled, path: full, source: dir.includes(".pi") ? "builtin" : "user",
+            });
+          }
+        } catch {}
+      }
       items.sort((a, b) => Number(b.enabled) - Number(a.enabled) || a.name.localeCompare(b.name));
       return json(200, { ok: true, skills: items });
     }
@@ -1040,14 +1046,17 @@ const server = createServer(async (req, res) => {
     if (p === "/api/skills/detail" && req.method === "GET") {
       const id = url.searchParams.get("id") || "";
       if (!id) return json(400, { error: "missing id" });
-      const dir = join(AGENT_DIR, "skills");
-      const candidates = [join(dir, id), join(dir, id + ".off")];
-      for (const full of candidates) {
-        if (existsSync(full) && statSync(full).isDirectory()) {
-          try {
-            return json(200, { ok: true, content: readFileSync(join(full, "SKILL.md"), "utf8") });
-          } catch {
-            return json(200, { ok: true, content: "（无 SKILL.md）" });
+      // 项目内置优先，用户已安装其次
+      const dirs = [join(HERE, ".pi", "skills"), join(AGENT_DIR, "skills")];
+      for (const dir of dirs) {
+        const candidates = [join(dir, id), join(dir, id + ".off")];
+        for (const full of candidates) {
+          if (existsSync(full) && statSync(full).isDirectory()) {
+            try {
+              return json(200, { ok: true, content: readFileSync(join(full, "SKILL.md"), "utf8") });
+            } catch {
+              return json(200, { ok: true, content: "（无 SKILL.md）" });
+            }
           }
         }
       }
