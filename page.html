@@ -88,29 +88,30 @@
     cursor: pointer;
   }
   .bubble a:hover { color: #93c5fd; }
-  /* ---------- Markdown 渲染样式（统一暗色风格） ---------- */
+  /* ---------- Markdown 渲染样式（统一为普通正文，无加粗/无深底彩字） ---------- */
   .bubble p { margin: 4px 0; }
   .bubble h1, .bubble h2, .bubble h3, .bubble h4, .bubble h5, .bubble h6 {
-    margin: 10px 0 5px; line-height: 1.35; color: #e8eaed; font-weight: 600;
+    margin: 10px 0 5px; line-height: 1.35; color: inherit; font-weight: 400;
   }
-  .bubble h1 { font-size: 19px; } .bubble h2 { font-size: 17px; }
-  .bubble h3 { font-size: 15.5px; } .bubble h4 { font-size: 14.5px; }
+  .bubble h1 { font-size: 17px; } .bubble h2 { font-size: 16px; }
+  .bubble h3 { font-size: 15px; } .bubble h4 { font-size: 14.5px; }
   .bubble h5, .bubble h6 { font-size: 13.5px; }
   .bubble ul, .bubble ol { margin: 4px 0; padding-left: 22px; }
   .bubble li { margin: 2px 0; }
   .bubble li > p { margin: 0; }
+  /* 行内代码：与正文完全一致，无背景无蓝字 */
   .bubble code.md-inline {
-    background: #0d1117; border: 1px solid #1f2733; border-radius: 5px;
-    padding: 1px 6px; font: 12.5px/1.5 Consolas, "Courier New", monospace;
-    color: #7dd3fc; word-break: break-all;
+    background: transparent; border: none; padding: 0;
+    font: inherit; color: inherit; word-break: break-all;
   }
+  /* 代码块：保留换行与等宽字体，但用与正文一致的颜色，深底减淡 */
   .bubble pre.md-code {
-    background: #0d1117; border: 1px solid #1f2733; border-radius: 8px;
+    background: #161b22; border: 1px solid #232b36; border-radius: 8px;
     padding: 10px 12px; overflow-x: auto; margin: 6px 0;
     position: relative;
   }
   .bubble pre.md-code code {
-    color: #e8eaed; font: 13px/1.5 Consolas, "Courier New", monospace;
+    color: #c9d1d9; font: 13px/1.5 Consolas, "Courier New", monospace;
     white-space: pre; display: block;
   }
   /* 代码块复制按钮：hover 时出现 */
@@ -125,18 +126,19 @@
   .code-copy:hover { color: #7dd3fc; border-color: #3b82f6; }
   .code-copy.done { color: #86efac; border-color: rgba(134,239,172,.4); }
   .bubble blockquote {
-    border-left: 3px solid #3b82f6; background: #161b22;
-    padding: 4px 12px; margin: 6px 0; color: #9aa4b2;
-    border-radius: 0 8px 8px 0;
+    border-left: 1px solid #2a323d; background: transparent;
+    padding: 4px 12px; margin: 6px 0; color: inherit;
+    border-radius: 0;
   }
   .bubble blockquote p { margin: 2px 0; }
   .bubble table { border-collapse: collapse; margin: 6px 0; display: block; overflow-x: auto; max-width: 100%; }
   .bubble th, .bubble td { border: 1px solid #2a323d; padding: 4px 10px; text-align: left; }
-  .bubble th { background: #161b22; color: #c6ccd4; font-weight: 600; }
+  .bubble th { background: #161b22; color: inherit; font-weight: 400; }
   .bubble tr:nth-child(even) td { background: #151a21; }
   .bubble hr { border: none; border-top: 1px solid #2a323d; margin: 10px 0; }
-  .bubble strong { color: #f1f3f5; font-weight: 600; }
-  .bubble del { color: #6b7280; }
+  /* 加粗/斜体统一为普通字重、正文颜色 */
+  .bubble strong, .bubble b, .bubble em, .bubble i { color: inherit; font-weight: 400; font-style: normal; }
+  .bubble del { color: inherit; }
   .bubble input[type=checkbox] { accent-color: #3b82f6; margin-right: 5px; }
   .tool {
     display: block; font: 12px/1.5 ui-monospace, Consolas, monospace;
