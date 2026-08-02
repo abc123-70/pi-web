@@ -811,6 +811,19 @@ const server = createServer(async (req, res) => {
       }
     }
 
+    // ---- 盘符列表（Windows 实际存在的盘，供项目浏览用） ----
+    if (p === "/api/drives" && req.method === "GET") {
+      const drives = [];
+      try {
+        for (const c of "CDEFGHIJKLMNOPQRSTUVWXYZ") {
+          if (existsSync(c + ":/")) drives.push(c + ":/");
+        }
+      } catch {
+        /* ignore */
+      }
+      return json(200, { ok: true, drives });
+    }
+
     // ---- 目录浏览（添加项目用，只读） ----
     if (p === "/api/browse" && req.method === "GET") {
       const dir = url.searchParams.get("path") || homedir();
@@ -908,7 +921,7 @@ const server = createServer(async (req, res) => {
       return json(200, { ok: true });
     }
 
-    // 项目下会话列表
+    // ---- 更新项目配置（预留，当前无使用） ----
     if ((mProj = p.match(/^\/api\/projects\/([^/]+)\/sessions$/)) && req.method === "GET") {
       const id = decodeURIComponent(mProj[1]);
       const projects = loadProjects();

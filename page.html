@@ -1101,7 +1101,7 @@ mcThinkOpts.addEventListener("click", async (e) => {
     if (d.ok) {
       getS(activeId).thinking = level;
       for (const x of mcThinkOpts.querySelectorAll(".mc-opt")) x.classList.toggle("active", x.dataset.t === level);
-      mcStatus.textContent = "✅ 思考等级: " + level;
+      mcStatus.textContent = "思考等级: " + level;
     } else mcStatus.textContent = "设置失败: " + (d.error || "");
   } catch (err) { mcStatus.textContent = "设置失败: " + err.message; }
 });
@@ -1355,12 +1355,19 @@ async function addProject() {
   function renderRoots() {
     const box = modal.querySelector("#apRoots");
     box.innerHTML = "";
-    for (const r of ["C:/", "D:/", "E:/", "F:/", "G:/", "H:/", "I:/", "J:/", "K:/", "L:/", "M:/", "N:/", "O:/", "P:/", "Q:/", "R:/", "S:/", "T:/", "U:/", "V:/", "W:/", "X:/", "Y:/", "Z:/"]) {
-      const b = el("button", "root", r.replace("/", ""));
-      b.title = r;
-      b.addEventListener("click", () => { browsePath = r; loadBrowse(); });
-      box.appendChild(b);
-    }
+    fetch("/api/drives")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.ok || !d.drives.length) return;
+        box.innerHTML = "";
+        for (const dr of d.drives) {
+          const b = el("button", "root", dr.replace("/", ""));
+          b.title = dr;
+          b.addEventListener("click", () => { browsePath = dr; loadBrowse(); });
+          box.appendChild(b);
+        }
+      })
+      .catch(() => {});
   }
   async function loadBrowse() {
     bStatus.textContent = "";
@@ -1387,6 +1394,7 @@ async function addProject() {
       }
       let dirCount = 0, fileCount = 0;
       for (const e of d.entries) {
+        if (e.name.startsWith("$")) continue; // 隐藏系统目录（回收站等）不展示
         if (e.isDir) {
           dirCount++;
           const it = el("div", "browse-item", esc(e.name) + "/");
