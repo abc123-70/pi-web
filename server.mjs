@@ -263,10 +263,14 @@ const DEEPSEEK_API_KEY = (() => {
   try {
     // 1) 环境变量优先（开源部署推荐）
     if (process.env.DEEPSEEK_API_KEY) return process.env.DEEPSEEK_API_KEY;
-    // 2) 本机密钥文件（开发环境）
-    const txt = readFileSync("D:/deepseek API密钥.txt", "utf8");
-    const m = txt.match(/sk-[A-Za-z0-9]+/);
-    return m ? m[0] : "";
+    // 2) 网页端配置的 auth.json（用户自己填写的 key，开源标准做法）
+    const authPath = join(AGENT_DIR, "auth.json");
+    if (existsSync(authPath)) {
+      const auth = JSON.parse(readFileSync(authPath, "utf8"));
+      const ds = auth && auth["deepseek"];
+      if (ds && typeof ds.key === "string" && ds.key) return ds.key;
+    }
+    return "";
   } catch {
     return "";
   }
