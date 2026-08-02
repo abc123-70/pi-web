@@ -2,45 +2,85 @@
 
 ![截图](screenshot.png)
 
-## 安装与运行
+## 安装与运行（新手教程）
 
-### 前置要求
+### 第 1 步：下载安装 Node.js
 
-- Node.js >= 18
+先下载 Node.js（这是一个运行环境，装一次就行）：
 
-### 克隆并安装
+- 国内镜像（速度快）：[https://npmmirror.com/mirrors/node/](https://npmmirror.com/mirrors/node/) —— 点进去找最新的 `node-vXX.X.X-x64.msi` 下载
+- 或者官网中文页：[https://nodejs.cn/download/](https://nodejs.cn/download/) —— 点绿色"下载 LTS 版本"
 
-```bash
+下载后双击安装，一路点"下一步"直到完成，不用改任何设置。
+
+### 第 2 步：打开终端
+
+按键盘上的 **Win + R**，弹出"运行"窗口，输入：
+
+```
+cmd
+```
+
+按回车，会打开一个黑色窗口（这就是终端）。
+
+### 第 3 步：验证 Node.js 装好了
+
+在黑色窗口里输入下面这行，按回车：
+
+```
+node -v
+```
+
+如果显示类似 `v22.19.0` 这样的版本号，说明装好了，继续下一步。
+
+### 第 4 步：下载本项目
+
+在黑色窗口里输入下面两行，每行输完按一次回车：
+
+```
+cd Desktop
 git clone https://github.com/abc123-70/pi-web.git
+```
+
+等待下载完成，然后进入项目文件夹：
+
+```
 cd pi-web
+```
+
+### 第 5 步：安装依赖
+
+在黑色窗口里输入，按回车，等待完成（可能需要几分钟）：
+
+```
 npm install
 ```
 
-### 配置 API Key
+### 第 6 步：配置 API Key
 
-```bash
-# 环境变量方式（推荐）
-# Windows:
+在黑色窗口里输入（把 `sk-xxx` 换成你自己的密钥）：
+
+```
 set DEEPSEEK_API_KEY=sk-xxx
-# macOS / Linux:
-export DEEPSEEK_API_KEY=sk-xxx
 ```
 
-也可以启动后在网页端「模型与配置 -> 自定义配置」填写。
+（macOS / Linux 用户用：`export DEEPSEEK_API_KEY=sk-xxx`）
 
-### 启动
+### 第 7 步：启动
 
-```bash
+输入：
+
+```
 npm start
 ```
 
-打开浏览器访问 http://127.0.0.1:8765
+看到 `pi-web 已启动` 就成功了。打开浏览器，访问：
 
-### 自定义端口
+**http://127.0.0.1:8765**
 
-```bash
-node server.mjs 9000
-```
+大功告成！
+
+---
 
 ## 内置技能
 
