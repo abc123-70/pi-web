@@ -481,7 +481,7 @@
 </div>
 <div class="main">
   <div class="wrap"><div class="msgs" id="msgs"></div></div>
-  <div class="bar"><span id="busy" style="display:none" class="dot"></span><span id="model" title="点击打开模型与配置">连接中…</span><span class="widget" id="wBalance" title="余额，点击前往对应厂商充值/用量页"><a href="https://platform.deepseek.com/top_up" target="_blank" rel="noopener noreferrer"><span id="balName">余额</span> <span class="amt" id="balAmt">--</span></a></span><span class="widget" id="wCtx" title="当前对话上下文占用">上下文 <span class="ctx-bar"><i id="ctxFill"></i></span> <span class="pct" id="ctxPct">--</span></span><span id="ctxWarn" style="display:none" title="点击新开对话">⚠ 建议新开对话</span><span style="flex:1"></span><span id="reconn" style="display:none;color:#f59e0b;font-size:12px">⚠ 连接断开，自动重连中…</span></div>
+  <div class="bar"><span id="busy" style="display:none" class="dot"></span><span id="model" title="点击打开模型与配置">连接中…</span><span class="widget" id="wBalance" title="余额，点击前往对应厂商充值/用量页"><a href="#" target="_blank" rel="noopener noreferrer"><span id="balName">余额</span> <span class="amt" id="balAmt">--</span></a></span><span class="widget" id="wCtx" title="当前对话上下文占用">上下文 <span class="ctx-bar"><i id="ctxFill"></i></span> <span class="pct" id="ctxPct">--</span></span><span id="ctxWarn" style="display:none" title="点击新开对话">⚠ 建议新开对话</span><span style="flex:1"></span><span id="reconn" style="display:none;color:#f59e0b;font-size:12px">⚠ 连接断开，自动重连中…</span></div>
   <div class="foot">
     <div class="attach-bar" id="attachBar"></div>
     <div class="inrow">
@@ -1845,12 +1845,10 @@ async function refreshBalance() {
   const full = getS(activeId).model || "";
   const provider = full.split("/")[0] || "deepseek";
   const label = BAL_LABELS[provider] || provider;
-  const link = BAL_LINKS[provider];
-  if (link) {
-    balLink.href = link;
-    balLink.title = "点击前往官网";
-  }
-  balName.textContent = label + "余额";
+  const link = BAL_LINKS[provider] || "#";
+  balLink.href = link;
+  balLink.title = link === "#" ? "余额" : "点击前往官网";
+  balName.textContent = "余额";
   // 只有 DeepSeek 有余额查询接口；其他渠道显示 --
   if (provider !== "deepseek") {
     balAmt.textContent = "--";
